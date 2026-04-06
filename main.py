@@ -2,10 +2,12 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
+# Root endpoint
 @app.get("/")
 def home():
     return {"message": "Smart Campus Backend is running"}
 
+# Events endpoint
 @app.get("/events")
 def get_events():
     return {
@@ -29,16 +31,17 @@ def get_events():
         ]
     }
 
+# Dining endpoint
 @app.get("/dining")
 def get_dining():
     return {
         "dining": [
             {
                 "dining_id": 1,
-                "dining_name": "Chick Fil-A",
+                "dining_name": "Chick-fil-A",
                 "opening_time": "7:00 AM",
                 "closing_time": "10:00 PM",
-                "dining_location": "Rathigan Student Center",
+                "dining_location": "Rhatigan Student Center",
                 "dining_status": "Open"
             },
             {
@@ -46,8 +49,76 @@ def get_dining():
                 "dining_name": "Panda Express",
                 "opening_time": "7:00 AM",
                 "closing_time": "10:00 PM",
-                "dining_location": "Rathigan Student Center",
+                "dining_location": "Rhatigan Student Center",
                 "dining_status": "Open"
+            }
+        ]
+    }
+
+# Courses endpoint
+@app.get("/courses")
+def get_courses():
+    return {
+        "courses": [
+            {
+                "course_id": 101,
+                "course_code": "CS 598",
+                "course_name": "Senior Design Project",
+                "course_department": "Computer Science",
+                "course_description": "Capstone project course for senior students",
+                "course_credits": 3
+            },
+            {
+                "course_id": 102,
+                "course_code": "CS 770",
+                "course_name": "Machine Learning",
+                "course_department": "Computer Science",
+                "course_description": "Introduction to machine learning concepts and models",
+                "course_credits": 3
+            }
+        ]
+    }
+
+# Professors endpoint
+@app.get("/professors")
+def get_professors():
+    return {
+        "professors": [
+            {
+                "professor_id": 101,
+                "professor_name": "Professor Cody AI",
+                "professor_department": "Computer Science",
+                "professor_email": "codyai@wsu.edu",
+                "office_location": "Room 209",
+                "professor_rating": 4.7
+            },
+            {
+                "professor_id": 102,
+                "professor_name": "Professor Thomas AI",
+                "professor_department": "Computer Science",
+                "professor_email": "thomasai@wsu.edu",
+                "office_location": "Room 201",
+                "professor_rating": 4.5
+            }
+        ]
+    }
+
+# Deadlines endpoint
+@app.get("/deadlines")
+def get_deadlines():
+    return {
+        "deadlines": [
+            {
+                "deadline_id": 1,
+                "deadline_title": "Course Registration Deadline",
+                "deadline_date": "2026-04-15",
+                "deadline_description": "Last day to register for Summer classes"
+            },
+            {
+                "deadline_id": 2,
+                "deadline_title": "Add/Drop Deadline",
+                "deadline_date": "2026-03-10",
+                "deadline_description": "Last day to add or drop a course without penalty"
             }
         ]
     }
