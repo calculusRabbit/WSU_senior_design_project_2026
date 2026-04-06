@@ -97,3 +97,22 @@ def get_professors():
             }
         ]
     }
+
+@app.get("/deadlines")
+def get_deadlines():
+    return {
+        "deadlines": [
+            {
+                "deadline_id": 1,
+                "deadline_title": "Course Registration Deadline",
+                "deadline_date": "2026-04-15",
+                "deadline_description": "Last day to register for Summer classes"
+            },
+            {
+                "deadline_id": 2,
+                "deadline_title": "Add/Drop Deadline",
+                "deadline_date": "2026-03-10",
+                "deadline_description": "Last day to add or drop a course without penalty"
+            }
+        ]
+    }
