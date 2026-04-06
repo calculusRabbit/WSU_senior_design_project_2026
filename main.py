@@ -2,10 +2,12 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
+# Root endpoint
 @app.get("/")
 def home():
     return {"message": "Smart Campus Backend is running"}
 
+# Events endpoint
 @app.get("/events")
 def get_events():
     return {
@@ -29,16 +31,17 @@ def get_events():
         ]
     }
 
+# Dining endpoint
 @app.get("/dining")
 def get_dining():
     return {
         "dining": [
             {
                 "dining_id": 1,
-                "dining_name": "Chick Fil-A",
+                "dining_name": "Chick-fil-A",
                 "opening_time": "7:00 AM",
                 "closing_time": "10:00 PM",
-                "dining_location": "Rathigan Student Center",
+                "dining_location": "Rhatigan Student Center",
                 "dining_status": "Open"
             },
             {
@@ -46,12 +49,13 @@ def get_dining():
                 "dining_name": "Panda Express",
                 "opening_time": "7:00 AM",
                 "closing_time": "10:00 PM",
-                "dining_location": "Rathigan Student Center",
+                "dining_location": "Rhatigan Student Center",
                 "dining_status": "Open"
             }
         ]
     }
 
+# Courses endpoint
 @app.get("/courses")
 def get_courses():
     return {
@@ -75,13 +79,14 @@ def get_courses():
         ]
     }
 
+# Professors endpoint
 @app.get("/professors")
 def get_professors():
     return {
         "professors": [
             {
                 "professor_id": 101,
-                "professor_name": "Professor Cody.AI",
+                "professor_name": "Professor Cody AI",
                 "professor_department": "Computer Science",
                 "professor_email": "codyai@wsu.edu",
                 "office_location": "Room 209",
@@ -89,7 +94,7 @@ def get_professors():
             },
             {
                 "professor_id": 102,
-                "professor_name": "Professor Thomas.AI",
+                "professor_name": "Professor Thomas AI",
                 "professor_department": "Computer Science",
                 "professor_email": "thomasai@wsu.edu",
                 "office_location": "Room 201",
@@ -98,6 +103,7 @@ def get_professors():
         ]
     }
 
+# Deadlines endpoint
 @app.get("/deadlines")
 def get_deadlines():
     return {
