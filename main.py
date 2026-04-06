@@ -75,3 +75,25 @@ def get_courses():
         ]
     }
 
+@app.get("/professors")
+def get_professors():
+    return {
+        "professors": [
+            {
+                "professor_id": 101,
+                "professor_name": "Professor Cody.AI",
+                "professor_department": "Computer Science",
+                "professor_email": "codyai@wsu.edu",
+                "office_location": "Room 209",
+                "professor_rating": 4.7
+            },
+            {
+                "professor_id": 102,
+                "professor_name": "Professor Thomas.AI",
+                "professor_department": "Computer Science",
+                "professor_email": "thomasai@wsu.edu",
+                "office_location": "Room 201",
+                "professor_rating": 4.5
+            }
+        ]
+    }
