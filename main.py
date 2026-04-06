@@ -51,3 +51,27 @@ def get_dining():
             }
         ]
     }
+
+@app.get("/courses")
+def get_courses():
+    return {
+        "courses": [
+            {
+                "course_id": 101,
+                "course_code": "CS 598",
+                "course_name": "Senior Design Project",
+                "course_department": "Computer Science",
+                "course_description": "Capstone project course for senior students",
+                "course_credits": 3
+            },
+            {
+                "course_id": 102,
+                "course_code": "CS 770",
+                "course_name": "Machine Learning",
+                "course_department": "Computer Science",
+                "course_description": "Introduction to machine learning concepts and models",
+                "course_credits": 3
+            }
+        ]
+    }
+
