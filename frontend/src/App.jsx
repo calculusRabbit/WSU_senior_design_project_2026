@@ -6,7 +6,7 @@ function App() {
   // change the return below to test different pages
   // return <Dashboard/>
   // return <Login/>
-  return <SignUp/>
+  return <Dashboard/>
 }
 
 export default App

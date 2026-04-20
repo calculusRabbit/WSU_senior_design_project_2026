@@ -1,7 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+# hey fai, added this so the frontend (localhost:5173) is allowed to talk to the backend (localhost:8000)
+# without this the browser will block all requests from frontend to backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["GET","POST"],
+    allow_headers=["*"]
+)
 class ChatRequest(BaseModel):
     message: str
 
