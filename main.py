@@ -64,26 +64,27 @@ def get_courses():
     return {
         "courses": [
             {
-                "course_id": 1,
-                "course_code": "CS 560",
-                "course_name": "Machine Learning",
-                "course_time": "TR 2:00-3:15 PM",
-                "course_room": "Jabara 210",
-                "course_professor": "Dr. Yang",
-                "course_department": "Computer Science",
-                "course_description": "Introduction to machine learning concepts and models",
-                "course_credits": 3
+                "id": 1,
+                "code": "CS 560",
+                "name": "Machine Learning",
+                "time": "TR 2:00-3:15 PM",
+                "room": "Jabara 210",
+                "professor": "Dr. Yang",
+                "department": "Computer Science",
+                "description": "Introduction to machine learning concepts and models",
+                "credits": 3
             },
+            
             {
-                "course_id": 2,
-                "course_code": "CS 598",
-                "course_name": "Senior Design Project",
-                "course_time": "MW 10:00-11:15 AM",
-                "course_room": "RSC 261",
-                "course_professor": "Dr. Smith",
-                "course_department": "Computer Science",
-                "course_description": "Capstone project course for senior students",
-                "course_credits": 3
+                "id": 2,
+                "code": "CS 598",
+                "name": "Senior Design Project",
+                "time": "MW 10:00-11:15 AM",
+                "room": "RSC 261",
+                "professor": "Dr. Smith",
+                "department": "Computer Science",
+                "description": "Capstone project course for senior students",
+                "credits": 3
             }
         ]
     }
