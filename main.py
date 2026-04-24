@@ -41,6 +41,20 @@ def get_professors():
 def get_deadlines():
     return {"deadlines": deadlines_data()}
 
+def find_course_by_message(message: str):
+    for course in courses_data():
+        if course["code"].lower() in message or course["name"].lower() in message:
+            return course
+    return None
+
+
+def find_professor_by_message(message: str):
+    for professor in professors_data():
+        name = professor["professor_name"].lower()
+        last_word = name.split()[-1]
+        if name in message or last_word in message:
+            return professor
+    return None
 
 @app.post("/chat")
 def chat(request: ChatRequest):
@@ -49,8 +63,24 @@ def chat(request: ChatRequest):
     event_keywords = ["event", "events", "activity", "activities", "career fair", "competition"]
     dining_keywords = ["dining", "food", "eat", "cafeteria", "restaurant", "hungry"]
     course_keywords = ["course", "courses", "class", "classes", "cs 560", "cs 598"]
-    professor_keywords = ["professor", "instructor", "teacher", "who teaches", "dr."]
+    professor_keywords = ["professor", "instructor", "teacher", "who teaches", "dr.", "yang", "smith"]
     deadline_keywords = ["deadline", "deadlines", "registration", "add/drop", "due date"]
+
+    matched_course = find_course_by_message(message)
+    if matched_course:
+        return {
+            "intent": "courses",
+            "reply": f"Here are the details for {matched_course['code']} {matched_course['name']}.",
+            "data": matched_course
+        }
+
+    matched_professor = find_professor_by_message(message)
+    if matched_professor:
+        return {
+            "intent": "professors",
+            "reply": f"Here are the details for {matched_professor['professor_name']}.",
+            "data": matched_professor
+        }
 
     if any(keyword in message for keyword in event_keywords):
         return {
