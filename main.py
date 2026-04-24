@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 
 from data import (
     events_data,
@@ -28,8 +28,25 @@ def get_dining():
 
 
 @app.get("/courses")
-def get_courses():
-    return {"courses": courses_data()}
+def get_courses(
+    code: str | None = Query(default=None),
+    professor: str | None = Query(default=None),
+):
+    courses = courses_data()
+
+    if code:
+        courses = [
+            course for course in courses
+            if code.lower() in course["code"].lower()
+        ]
+
+    if professor:
+        courses = [
+            course for course in courses
+            if professor.lower() in course["professor"].lower()
+        ]
+
+    return {"courses": courses}
 
 
 @app.get("/professors")
