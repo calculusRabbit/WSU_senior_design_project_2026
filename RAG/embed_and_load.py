@@ -28,7 +28,7 @@ def build_faiss_index(vectors):
 
 
 def main():
-    data = load_json(r"data/chunks_copy.json", encoding="utf-8")
+    data = load_json(r"data/chunks.json", encoding="utf-8")
 
     chunks = []
     for item in data:

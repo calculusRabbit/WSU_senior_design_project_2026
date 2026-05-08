@@ -2,8 +2,8 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import json
 import faiss
-docIdx_file_path = r"data/index_document.faiss"
-chunks_file_path = r"data/chunks_copy.json"
+docIdx_file_path = r"data/document_index.faiss"
+chunks_file_path = r"data/chunks.json"
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def embed_query(user_input: str) -> np.ndarray:
@@ -28,7 +28,7 @@ def main():
         chunks = json.load(f)
 
     # test a query
-    query = "open house"
+    query = "Japan festival"
     query_vector = embed_query(query)
     distances, indices = search_similar(index, query_vector, top_k=5)
 
