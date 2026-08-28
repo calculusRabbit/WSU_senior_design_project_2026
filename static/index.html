@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus Assistant</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #chat-box {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            min-height: 300px;
+            padding: 15px;
+            margin-bottom: 15px;
+            overflow-y: auto;
+        }
+
+        .user-message {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .assistant-message {
+            margin: 10px 0 20px 0;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Smart Campus Assistant</h1>
+
+    <div id="chat-box">
+        <div class="assistant-message">
+            Assistant: Hello! Ask me about campus events, dining,
+            courses, professors, or deadlines.
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input
+            type="text"
+            id="message-input"
+            placeholder="Ask a campus question..."
+            onkeydown="if (event.key === 'Enter') sendMessage()"
+        >
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("message-input");
+            const chatBox = document.getElementById("chat-box");
+
+            const message = input.value.trim();
+
+            if (!message) {
+                return;
+            }
+
+            chatBox.innerHTML += `
+                <div class="user-message">
+                    You: ${message}
+                </div>
+            `;
+
+            input.value = "";
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    chatBox.innerHTML += `
+                        <div class="assistant-message">
+                            Assistant: ${result.detail}
+                        </div>
+                    `;
+                    return;
+                }
+
+                let dataHtml = "";
+
+            if (result.data) {
+
+                // Dining
+                if (result.intent === "dining" && Array.isArray(result.data)) {
+                    result.data.forEach(item => {
+                        dataHtml += `
+                            <div>
+                                <strong>${item.dining_name}</strong><br>
+                                Location: ${item.dining_location}<br>
+                                Hours: ${item.opening_time} - ${item.closing_time}<br>
+                                Status: ${item.dining_status}
+                            </div>
+                            <br>
+                        `;
+                    });
+                }
+
+                // Events
+                else if (result.intent === "events" && Array.isArray(result.data)) {
+                    result.data.forEach(event => {
+                        dataHtml += `
+                            <div>
+                                <strong>${event.event_name}</strong><br>
+                                Date: ${event.event_date}<br>
+                                Time: ${event.event_time}<br>
+                                Location: ${event.event_location}<br>
+                                ${event.event_description}
+                            </div>
+                            <br>
+                        `;
+                    });
+                }
+
+                // Courses
+                else if (result.intent === "courses") {
+                    const courses = Array.isArray(result.data)
+                        ? result.data
+                        : [result.data];
+
+                    courses.forEach(course => {
+                        dataHtml += `
+                            <div>
+                                <strong>${course.code} - ${course.name}</strong><br>
+                                Time: ${course.time}<br>
+                                Room: ${course.room}<br>
+                                Professor: ${course.professor}<br>
+                                Credits: ${course.credits}
+                            </div>
+                            <br>
+                        `;
+                    });
+                }
+
+                // Professors
+                else if (result.intent === "professors") {
+                    const professors = Array.isArray(result.data)
+                        ? result.data
+                        : [result.data];
+
+                    professors.forEach(professor => {
+                        dataHtml += `
+                            <div>
+                                <strong>${professor.professor_name}</strong><br>
+                                Department: ${professor.professor_department}<br>
+                                Email: ${professor.professor_email}<br>
+                                Office: ${professor.office_location}<br>
+                                Rating: ${professor.professor_rating}
+                            </div>
+                            <br>
+                        `;
+                    });
+                }
+
+                // Deadlines
+                else if (result.intent === "deadlines" && Array.isArray(result.data)) {
+                    result.data.forEach(deadline => {
+                        dataHtml += `
+                            <div>
+                                <strong>${deadline.deadline_title}</strong><br>
+                                Date: ${deadline.deadline_date}<br>
+                                ${deadline.deadline_description}
+                            </div>
+                            <br>
+                        `;
+                    });
+                }
+            }
+
+            chatBox.innerHTML += `
+                <div class="assistant-message">
+                    <strong>Assistant:</strong> ${result.reply}
+                    <br><br>
+                    ${dataHtml}
+                </div>
+            `;
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            } catch (error) {
+                chatBox.innerHTML += `
+                    <div class="assistant-message">
+                        Assistant: Unable to connect to the backend.
+                    </div>
+                `;
+            }
+        }
+    </script>
+
+</body>
+</html>

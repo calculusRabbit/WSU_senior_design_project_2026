@@ -1,235 +1,286 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+import re
+
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+from database import (
+    get_events_from_database,
+    save_student_interests,
+    get_student_interests,
+    get_deadlines_from_database,
+    get_courses_from_database,
+    get_professors_from_database,
+    get_dining_from_database,
+)
+
+from fastapi import FastAPI, Query, HTTPException
+
+from models import ChatRequest, RecommendationRequest, StudentInterestsRequest
+
+INTEREST_GROUPS = {
+    "coding": [
+        "coding",
+        "programming",
+        "computer science",
+        "technology",
+        "software"
+    ],
+    "career": [
+        "career",
+        "job",
+        "jobs",
+        "internship",
+        "internships",
+        "employment"
+    ]
+}
 
 app = FastAPI()
-class ChatRequest(BaseModel):
-    message: str
 
-# Root endpoint
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 @app.get("/")
 def home():
-    return {"message": "Smart Campus Backend is running"}
+    return FileResponse("static/index.html")
 
-# Events endpoint
 @app.get("/events")
 def get_events():
-    return {
-        "events": [
-            {
-                "event_id": 1,
-                "event_name": "C++ Competition",
-                "event_date": "2026-03-20",
-                "event_time": "10:00 AM",
-                "event_location": "Rhatigan Student Center",
-                "event_description": "A coding competition for students"
-            },
-            {
-                "event_id": 2,
-                "event_name": "Career Fair",
-                "event_date": "2026-03-25",
-                "event_time": "1:00 PM",
-                "event_location": "John Bardo Center",
-                "event_description": "Meet employers and explore job opportunities"
-            }
-        ]
-    }
+    return {"events": get_events_from_database()}
 
-# Dining endpoint
+
 @app.get("/dining")
 def get_dining():
-    return {
-        "dining": [
-            {
-                "dining_id": 1,
-                "dining_name": "Chick-fil-A",
-                "opening_time": "7:00 AM",
-                "closing_time": "10:00 PM",
-                "dining_location": "Rhatigan Student Center",
-                "dining_status": "Open"
-            },
-            {
-                "dining_id": 2,
-                "dining_name": "Panda Express",
-                "opening_time": "7:00 AM",
-                "closing_time": "10:00 PM",
-                "dining_location": "Rhatigan Student Center",
-                "dining_status": "Open"
-            }
-        ]
-    }
+    return {"dining": get_dining_from_database()}
 
-# Courses endpoint
+
 @app.get("/courses")
-def get_courses():
-    return {
-        "courses": [
-            {
-                "course_id": 101,
-                "course_code": "CS 598",
-                "course_name": "Senior Design Project",
-                "course_department": "Computer Science",
-                "course_description": "Capstone project course for senior students",
-                "course_credits": 3
-            },
-            {
-                "course_id": 102,
-                "course_code": "CS 770",
-                "course_name": "Machine Learning",
-                "course_department": "Computer Science",
-                "course_description": "Introduction to machine learning concepts and models",
-                "course_credits": 3
-            }
-        ]
-    }
+def get_courses(
+    code: str | None = Query(default=None),
+    professor: str | None = Query(default=None),
+):
+    courses = get_courses_from_database()
 
-# Professors endpoint
+    if code:
+        courses = [
+            course for course in courses
+            if code.lower() in course["code"].lower()
+        ]
+
+    if professor:
+        courses = [
+            course for course in courses
+            if professor.lower() in course["professor"].lower()
+        ]
+
+    return {"courses": courses}
+
+
 @app.get("/professors")
 def get_professors():
-    return {
-        "professors": [
-            {
-                "professor_id": 101,
-                "professor_name": "Professor Cody AI",
-                "professor_department": "Computer Science",
-                "professor_email": "codyai@wsu.edu",
-                "office_location": "Room 209",
-                "professor_rating": 4.7
-            },
-            {
-                "professor_id": 102,
-                "professor_name": "Professor Thomas AI",
-                "professor_department": "Computer Science",
-                "professor_email": "thomasai@wsu.edu",
-                "office_location": "Room 201",
-                "professor_rating": 4.5
-            }
-        ]
-    }
+    return {"professors": get_professors_from_database()}
 
-# Deadlines endpoint
+
 @app.get("/deadlines")
 def get_deadlines():
+    return {"deadlines": get_deadlines_from_database()}
+
+def find_course_by_message(message: str):
+    for course in get_courses_from_database():
+        if course["code"].lower() in message or course["name"].lower() in message:
+            return course
+    return None
+
+def find_professor_by_message(message: str):
+    for professor in get_professors_from_database():
+        name = professor["professor_name"].lower()
+        last_word = name.split()[-1]
+        if name in message or last_word in message:
+            return professor
+    return None
+
+def contains_keyword(message: str, keyword: str):
+    pattern = rf"(?<!\w){re.escape(keyword)}(?!\w)"
+    return re.search(pattern, message) is not None
+
+@app.post("/recommendations/events")
+def recommend_events(request: RecommendationRequest):
+    student_interests = [
+        interest.lower().strip()
+        for interest in request.interests
+    ]
+
+    recommended_events = []
+
+    for event in get_events_from_database():
+        category = event["event_category"].lower()
+
+        related_interests = INTEREST_GROUPS.get(
+        category,
+        [category]
+)
+
+        if any(
+            interest in related_interests
+            for interest in student_interests
+        ):
+            recommended_events.append(event)
+
     return {
-        "deadlines": [
-            {
-                "deadline_id": 1,
-                "deadline_title": "Course Registration Deadline",
-                "deadline_date": "2026-04-15",
-                "deadline_description": "Last day to register for Summer classes"
-            },
-            {
-                "deadline_id": 2,
-                "deadline_title": "Add/Drop Deadline",
-                "deadline_date": "2026-03-10",
-                "deadline_description": "Last day to add or drop a course without penalty"
-            }
-        ]
+        "interests": request.interests,
+        "recommended_events": recommended_events
+    }
+
+
+@app.post("/students/{student_id}/interests")
+def set_student_interests(
+    student_id: int,
+    request: StudentInterestsRequest
+):
+    if not request.interests:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one student interest is required."
+        )
+        
+    save_student_interests(student_id, request.interests)
+
+    return {
+        "student_id": student_id,
+        "interests": request.interests,
+        "message": "Student interests saved successfully."
+    }
+
+
+@app.get("/students/{student_id}/interests")
+def get_saved_student_interests(student_id: int):
+    interests = get_student_interests(student_id)
+
+    return {
+        "student_id": student_id,
+        "interests": interests
+    }
+
+@app.get("/students/{student_id}/recommendations/events")
+def get_student_event_recommendations(student_id: int):
+    student_interests = get_student_interests(student_id)
+
+    if not student_interests:
+        raise HTTPException(
+            status_code=404,
+            detail="No saved interests found for this student."
+        )    
+    recommended_events = []
+
+    for event in get_events_from_database():
+        category = event["event_category"].lower()
+
+        related_interests = INTEREST_GROUPS.get(
+        category,
+        [category]
+)
+
+        if any(
+            interest in related_interests
+            for interest in student_interests
+        ):
+            recommended_events.append(event)
+
+    return {
+        "student_id": student_id,
+        "interests": student_interests,
+        "recommended_events": recommended_events
     }
 
 @app.post("/chat")
 def chat(request: ChatRequest):
-    message = request.message.lower()
+    message = request.message.lower().strip()
 
-    if "event" in message:
+    if not message:
+        raise HTTPException(
+            status_code=400,
+            detail="Message cannot be empty."
+        )
+
+    event_keywords = ["event", "events", "activity", "activities", "career fair", "competition"]
+    dining_keywords = ["dining", "food", "eat", "cafeteria", "restaurant", "hungry"]
+    course_keywords = ["course", "courses", "class", "classes", "cs 560", "cs 598"]
+    professor_keywords = ["professor", "instructor", "teacher", "who teaches", "dr.", "yang", "smith"]
+    deadline_keywords = ["deadline", "deadlines", "registration", "add/drop", "due date"]
+
+    matched_course = find_course_by_message(message)
+    if matched_course:
+        return {
+            "intent": "courses",
+            "reply": f"Here are the details for {matched_course['code']} {matched_course['name']}.",
+            "data": matched_course
+        }
+
+    matched_professor = find_professor_by_message(message)
+    if matched_professor:
+        return {
+            "intent": "professors",
+            "reply": f"Here are the details for {matched_professor['professor_name']}.",
+            "data": matched_professor
+        }
+
+    if any(
+    contains_keyword(message, keyword)
+    for keyword in event_keywords
+):
         return {
             "intent": "events",
             "reply": "Here are some upcoming campus events.",
-            "data": [
-                {
-                    "event_id": 1,
-                    "event_name": "C++ Competition",
-                    "event_date": "2026-03-20",
-                    "event_time": "10:00 AM",
-                    "event_location": "Rhatigan Student Center"
-                },
-                {
-                    "event_id": 2,
-                    "event_name": "Career Fair",
-                    "event_date": "2026-03-25",
-                    "event_time": "1:00 PM",
-                    "event_location": "John Bardo Center"
-                }
-            ]
+            "data": get_events_from_database()
         }
 
-    elif "dining" in message or "food" in message or "eat" in message:
+    elif any(
+    contains_keyword(message, keyword)
+    for keyword in dining_keywords
+):
         return {
             "intent": "dining",
             "reply": "Here are some dining options on campus.",
-            "data": [
-                {
-                    "dining_id": 1,
-                    "dining_name": "Chick-fil-A",
-                    "opening_time": "7:00 AM",
-                    "closing_time": "10:00 PM",
-                    "dining_location": "Rhatigan Student Center"
-                },
-                {
-                    "dining_id": 2,
-                    "dining_name": "Panda Express",
-                    "opening_time": "7:00 AM",
-                    "closing_time": "10:00 PM",
-                    "dining_location": "Rhatigan Student Center"
-                }
-            ]
+            "data": get_dining_from_database()
         }
 
-    elif "course" in message or "class" in message:
+    elif any(
+    contains_keyword(message, keyword)
+    for keyword in course_keywords
+):
         return {
             "intent": "courses",
             "reply": "Here are some course details.",
-            "data": [
-                {
-                    "course_id": 101,
-                    "course_code": "CS 598",
-                    "course_name": "Senior Design Project"
-                },
-                {
-                    "course_id": 102,
-                    "course_code": "CS 770",
-                    "course_name": "Machine Learning"
-                }
-            ]
+            "data": get_courses_from_database()
         }
 
-    elif "professor" in message or "instructor" in message:
+    elif any(
+    contains_keyword(message, keyword)
+    for keyword in professor_keywords
+):
         return {
             "intent": "professors",
             "reply": "Here are some professor details.",
-            "data": [
-                {
-                    "professor_id": 101,
-                    "professor_name": "Professor Cody AI",
-                    "professor_rating": 4.7
-                },
-                {
-                    "professor_id": 102,
-                    "professor_name": "Professor Thomas AI",
-                    "professor_rating": 4.5
-                }
-            ]
+            "data": get_professors_from_database()
         }
 
-    elif "deadline" in message:
+    elif any(
+    contains_keyword(message, keyword)
+    for keyword in deadline_keywords
+):
         return {
             "intent": "deadlines",
             "reply": "Here are some important academic deadlines.",
-            "data": [
-                {
-                    "deadline_id": 1,
-                    "deadline_title": "Course Registration Deadline",
-                    "deadline_date": "2026-04-15"
-                },
-                {
-                    "deadline_id": 2,
-                    "deadline_title": "Add/Drop Deadline",
-                    "deadline_date": "2026-03-10"
-                }
-            ]
+            "data": get_deadlines_from_database()
         }
 
     else:
         return {
             "intent": "unknown",
-            "reply": "Sorry, I can currently help with events, dining, courses, professors, and deadlines."
+            "reply": (
+                "I could not understand that request. "
+                "I can help with campus events, dining, courses, "
+                "professors, deadlines, and student recommendations. "
+                "Try asking something like 'What events are happening?' "
+                "or 'Tell me about CS 560.'"
+            )
         }
